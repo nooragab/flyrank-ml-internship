@@ -31,9 +31,7 @@
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
-  .wrap-wide{max-width:900px;margin:0 auto;padding:0 24px;}
 
-  /* Masthead */
   header.masthead{
     border-bottom:1px solid var(--line);
     padding:64px 0 40px;
@@ -63,7 +61,6 @@
   }
   .byline b{color:var(--ink);font-weight:600;}
 
-  /* Abstract */
   .abstract{
     background:var(--paper-raised);
     border-left:3px solid var(--accent);
@@ -74,14 +71,12 @@
   .abstract h2{
     font-family:var(--sans);
     font-size:12.5px;
-    text-transform:none;
     letter-spacing:0.01em;
     color:var(--accent);
     font-weight:600;
     margin:0 0 10px;
   }
 
-  /* Body sections */
   main{padding:48px 0 20px;}
   section{margin:0 0 56px;}
   section h2{
@@ -113,13 +108,13 @@
   a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
   a:hover{color:var(--warn);}
 
-  /* Data tables */
+  .table-scroll{overflow-x:auto;}
   table{
     width:100%;
     border-collapse:collapse;
     font-family:var(--sans);
     font-size:14.5px;
-    margin:18px 0 24px;
+    margin:18px 0 8px;
   }
   th, td{
     text-align:left;
@@ -133,15 +128,9 @@
     border-bottom:2px solid var(--ink);
   }
   tr.hero-row td{font-weight:600;color:var(--accent);}
+  .note{font-family:var(--sans);font-size:13px;color:var(--ink-soft);margin:0 0 24px;}
 
-  /* Figure */
   figure{margin:22px 0 8px;}
-  figure img{
-    width:100%;
-    border:1px solid var(--line);
-    border-radius:2px;
-    display:block;
-  }
   figcaption{
     font-family:var(--sans);
     font-size:13px;
@@ -149,7 +138,6 @@
     margin-top:8px;
   }
 
-  /* Callouts */
   .callout{
     background:var(--warn-soft);
     border-left:3px solid var(--warn);
@@ -157,13 +145,13 @@
     font-size:15px;
     margin:18px 0;
   }
-  .callout p{margin:0;font-size:15px;}
+  .callout p{margin:0 0 10px;font-size:15px;}
+  .callout p:last-child{margin-bottom:0;}
   .callout-good{
     background:var(--accent-soft);
     border-left:3px solid var(--accent);
   }
 
-  /* Reason code cards */
   .reason-grid{
     display:grid;
     grid-template-columns:1fr;
@@ -187,11 +175,9 @@
   .reason-card .desc{font-size:14.5px;color:var(--ink-soft);line-height:1.5;}
   .reason-card .desc b{color:var(--ink);font-weight:600;}
 
-  /* Limitations list */
   .limits li{padding-left:2px;}
   .limits li::marker{color:var(--warn);}
 
-  /* Footer */
   footer{
     border-top:1px solid var(--line);
     padding:36px 0 56px;
@@ -227,7 +213,7 @@
 <div class="wrap">
   <div class="abstract">
     <h2>Abstract</h2>
-    <p>Content teams cannot review every page they own, so this work asks which pages to look at first, using a page's observable March 2026 search signals to predict whether its visibility declines into April. A transparent baseline rule is compared against logistic regression and random forest classifiers under a client-grouped, held-out validation split. In this run, both trained models scored higher than the baseline at Precision@20 and Precision@50, though each figure rests on a small number of pages and should be read as directional. A separate diagnostic comparison suggests an ungrouped train/test split can substantially inflate reported precision, which is why validation design matters as much as model choice. The output is a reason-coded, human-reviewed action queue, framed as decision support rather than a causal or automated system.</p>
+    <p>Content teams cannot review every page they own, so this work asks which pages to look at first, using a page's observable March 2026 search signals to predict whether its daily impressions fall in April. A transparent baseline rule is compared against logistic regression and random forest classifiers under client-grouped validation. A leakage audit found that two staleness features reflected the data release date rather than March, so they were removed and every result was re-run. In 5-fold client-grouped cross-validation, overall discrimination is weak for all three methods (AUC about 0.60), but the random forest scored higher than the baseline at the top of the ranking in all five folds (Precision@500 of 0.80 versus 0.70, with a base rate of 0.64). On a single held-out split, a top-5% review queue from the random forest had a 68% decline rate versus 54% across all pages. These results are directional, observational decision support for a human-reviewed queue, not a causal or automated system.</p>
   </div>
 </div>
 
@@ -244,150 +230,197 @@
     <p>This study uses the <strong>FlyRank/internship-warehouse</strong> release on Hugging Face (build <code>flyrank_pseudonymized_warehouse_release_v20260703</code>), a pseudonymized snapshot of real search performance data. The full release holds 78.8 million daily fact rows (<code>fact_content_daily_performance</code>) and 519,606 content items (<code>dim_content</code>), across 104 clients.</p>
     <h3>Tables used</h3>
     <ul>
-      <li><code>dim_content.parquet</code> &mdash; content metadata: word count, creation and last-update dates.</li>
+      <li><code>dim_content.parquet</code> &mdash; content metadata (word count; creation and last-update dates, which turned out to be unusable as March features, see Methodology).</li>
       <li><code>fact_content_daily_performance/month=2026-03/</code> and <code>month=2026-04/</code> &mdash; daily Google Search Console facts, filtered to rows with confirmed GSC data availability.</li>
     </ul>
     <h3>Date windows</h3>
-    <p>March 2026 serves as the <strong>feature window</strong>; April 2026 serves as the <strong>label window</strong>. This is a genuine past-to-future split &mdash; the label is never computed from data the model could see at prediction time.</p>
+    <p>March 2026 serves as the <strong>feature window</strong>; April 2026 serves as the <strong>label window</strong>. The label is never computed from data the model could see at prediction time.</p>
     <h3>Scope and exclusions</h3>
-    <p>The working slice is restricted to pages with at least 100 March impressions, yielding 100,893 page-rows across 43 clients. GA4 engagement signals (sessions, scroll depth, engagement rate) were excluded to keep the feature set to five core, easily-auditable signals; this is a scoping choice for this iteration, not a data-availability limit. No FlyRank product decision flags (health score, priority score, action type) exist in this release, so none required stripping. Every identifier used &mdash; client and content IDs &mdash; is a pseudonymized hash; no raw client names, domains, URLs, or search queries appear anywhere in this work.</p>
+    <p>The working slice is restricted to pages with at least 100 March impressions that also have GSC data in April, yielding 100,893 page-rows across 43 clients. GA4 engagement signals were excluded to keep the feature set small and auditable; this is a scoping choice for this iteration, not a data-availability limit. No FlyRank product decision flags (health score, priority score, action type) exist in this release, so none required stripping. Every identifier used &mdash; client and content IDs &mdash; is a pseudonymized hash; no raw client names, domains, URLs, or search queries appear anywhere in this work.</p>
   </section>
 
   <section id="methodology">
     <h2>Methodology</h2>
     <h3>Baseline</h3>
-    <p>A transparent, hand-written rule serves as the bar to beat: <code>score = impressions &times; is_stale &times; ctr_gap</code>, where <code>is_stale</code> flags pages unchanged for 90+ days and <code>ctr_gap</code> is how far a page's click-through rate sits below its position tier's average.</p>
+    <p>A transparent, hand-written rule serves as the bar to beat: <code>score = impressions &times; ctr_gap</code>, where <code>ctr_gap</code> is how far a page's click-through rate sits below its position tier's average. High-traffic pages with a large CTR shortfall rank first.</p>
     <h3>Label</h3>
-    <p><code>is_declining_next_month</code> = 1 if a page's April impressions fall below its March impressions, else 0. Because the label window is strictly after the feature window, this avoids the within-month proxy weakness identified earlier in this project's data contract.</p>
+    <p><code>is_declining_next_month</code> = 1 if a page's April average daily impressions (April total &divide; 30) are below its March average daily impressions (March total &divide; 31), else 0. Comparing daily averages avoids the built-in bias from March having one more day than April.</p>
     <h3>Features</h3>
-    <p>Five signals, each knowable before the decision point: monthly impressions, average search position, click-through rate and its gap to the position-tier average, a staleness flag, and word count.</p>
+    <p>Four signals, giving six numeric model inputs plus the position tier: monthly impressions, average search position, click-through rate (<code>ctr_month</code>, <code>tier_avg_ctr</code>, <code>ctr_gap</code>), and word count.</p>
     <h3>Models</h3>
-    <p>Logistic regression and random forest classifiers were trained on the same feature set as the baseline, so the comparison is apples-to-apples.</p>
+    <p>Logistic regression (with feature standardization) and random forest classifiers were trained on the same features as the baseline.</p>
+    <h3>Leakage audit and removed features</h3>
+    <p>Every feature was checked against three questions: is it computed after the decision point, does its measurement window overlap the label window, and is it a rebuilt product decision flag? The first version of this analysis passed all eight of its features. A later diagnostic showed that this was wrong for two of them: <code>content_updated_date</code> in the release reflects the release time (July 2026), not 31 March, so 82% of pages had an update date after the decision point. <code>days_since_last_update</code> and <code>is_stale</code> were therefore built partly from information that did not exist at prediction time. The stale flag was also almost constant (99.9% of pages scored zero), which meant the original baseline rule ranked nearly every page at zero. Both features were removed, the baseline was redefined, and all results below were re-run. <code>word_count</code> is also a release-time snapshot that could not be checked against March; it is kept and listed as a limitation.</p>
     <h3>Validation design</h3>
-    <p>Pages are split by <code>GroupShuffleSplit</code>, grouped by client, so no single client's pages appear in both the training and test sets. This choice was checked with a separate diagnostic run (notebook <code>w06</code>): scoring a random forest on an <strong>ungrouped</strong> random split gave a Precision@50 of <strong>0.98</strong>, against <strong>0.72</strong> on the client-grouped split in that run. That large gap is consistent with the model recognizing client-specific patterns rather than learning something general. Those two figures come from that earlier run and are not the figures in the results table below. All results in this paper use the grouped split.</p>
-    <h3>Leakage audit</h3>
-    <p>Every feature was checked against three questions: is it computed strictly before the decision point, does its measurement window overlap the label window, and is it a rebuilt product decision flag? All eight model inputs passed &mdash; each is computed from March data alone or from static content metadata, and no product flags exist in this dataset to leak in.</p>
+    <p>Pages are split by <code>GroupShuffleSplit</code> grouped by client, and robustness is checked with 5-fold <code>GroupKFold</code> cross-validation on the same grouping, so no client's pages appear in both training and test. Cross-validation is the primary result; the single split is directional only. A leakage demonstration (random forest, three seeds) compared a random page-level split with a client-grouped split: Precision@500 was about 0.83 versus 0.80, a small gap. In the earlier version that still contained the release-time feature the gap was larger (about 0.91 versus 0.76), which is consistent with that feature acting as a client-specific signal; this explanation was not tested directly.</p>
   </section>
 
   <section id="results">
     <h2>Results</h2>
-    <p>Precision@K measures how many of a ranking's top K picks were genuinely declining pages &mdash; the metric that matches how a review queue is actually used.</p>
+    <p>Precision@K measures how many of a ranking's top K picks were genuinely declining pages &mdash; the metric that matches how a review queue is actually used. A random ranking would score about the share of pages that declined.</p>
+
+    <h3>Primary result: 5-fold client-grouped cross-validation (mean ± std across folds)</h3>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Method</th><th>AUC</th><th>Precision@50</th><th>Precision@500</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Baseline rule</td><td>0.597 ± 0.018</td><td>0.688 ± 0.132</td><td>0.695 ± 0.101</td></tr>
+        <tr><td>Logistic regression</td><td>0.595 ± 0.031</td><td>0.740 ± 0.032</td><td>0.735 ± 0.091</td></tr>
+        <tr class="hero-row"><td>Random forest</td><td>0.602 ± 0.023</td><td>0.836 ± 0.095</td><td>0.800 ± 0.077</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="note">Average share of declining pages across folds (random-ranking level): 0.638.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 350" role="img" aria-label="Grouped bar chart of mean Precision at 50 and Precision at 500 from 5-fold client-grouped cross-validation for the baseline rule, logistic regression and random forest, with a dashed line at 0.638 marking the share of declining pages" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)" font-family="Inter, sans-serif">
+<rect x="60" y="14" width="12" height="12" fill="#8fb0a7"/><text x="78" y="24" font-size="12.5" fill="#4a4d47">Precision@50</text>
+<rect x="175" y="14" width="12" height="12" fill="#3a5a52"/><text x="193" y="24" font-size="12.5" fill="#4a4d47">Precision@500</text>
+<line x1="320" y1="20" x2="348" y2="20" stroke="#8a5a2b" stroke-width="1.5" stroke-dasharray="6 4"/><text x="356" y="24" font-size="12.5" fill="#8a5a2b">0.638 = share of declining pages (chance level)</text>
+<line x1="60" y1="290" x2="700" y2="290" stroke="#dedad0"/><text x="52" y="294" font-size="11.5" fill="#4a4d47" text-anchor="end">0.00</text>
+<line x1="60" y1="230" x2="700" y2="230" stroke="#dedad0"/><text x="52" y="234" font-size="11.5" fill="#4a4d47" text-anchor="end">0.25</text>
+<line x1="60" y1="170" x2="700" y2="170" stroke="#dedad0"/><text x="52" y="174" font-size="11.5" fill="#4a4d47" text-anchor="end">0.50</text>
+<line x1="60" y1="110" x2="700" y2="110" stroke="#dedad0"/><text x="52" y="114" font-size="11.5" fill="#4a4d47" text-anchor="end">0.75</text>
+<line x1="60" y1="50" x2="700" y2="50" stroke="#dedad0"/><text x="52" y="54" font-size="11.5" fill="#4a4d47" text-anchor="end">1.00</text>
+<rect x="134" y="124.9" width="56" height="165.1" fill="#8fb0a7"/>
+<text x="162" y="144.9" font-size="13" font-weight="600" fill="#1c1e1b" text-anchor="middle">0.69</text>
+<rect x="198" y="123.2" width="56" height="166.8" fill="#3a5a52"/>
+<text x="226" y="143.2" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">0.70</text>
+<text x="190" y="312" font-size="13" fill="#1c1e1b" text-anchor="middle">Baseline rule</text>
+<rect x="324" y="112.4" width="56" height="177.6" fill="#8fb0a7"/>
+<text x="352" y="132.4" font-size="13" font-weight="600" fill="#1c1e1b" text-anchor="middle">0.74</text>
+<rect x="388" y="113.6" width="56" height="176.4" fill="#3a5a52"/>
+<text x="416" y="133.6" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">0.74</text>
+<text x="380" y="312" font-size="13" fill="#1c1e1b" text-anchor="middle">Logistic regression</text>
+<rect x="514" y="89.4" width="56" height="200.6" fill="#8fb0a7"/>
+<text x="542" y="109.4" font-size="13" font-weight="600" fill="#1c1e1b" text-anchor="middle">0.84</text>
+<rect x="578" y="98" width="56" height="192" fill="#3a5a52"/>
+<text x="606" y="118" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">0.80</text>
+<text x="570" y="312" font-size="13" fill="#1c1e1b" text-anchor="middle">Random forest</text>
+<line x1="60" y1="136.9" x2="700" y2="136.9" stroke="#8a5a2b" stroke-width="1.5" stroke-dasharray="6 4"/>
+</svg>
+      <figcaption>Figure 1. Mean Precision@50 and Precision@500 across five client-grouped folds. The dashed line marks the share of declining pages (0.638), which is what a random ranking would score. Fold-to-fold standard deviations are 0.03&ndash;0.13.</figcaption>
+    </figure>
+
+    <h3>Paired comparison against the baseline (same folds)</h3>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Metric</th><th>Mean difference vs baseline</th><th>Folds better (of 5)</th></tr>
+      </thead>
+      <tbody>
+        <tr class="hero-row"><td>Random forest</td><td>Precision@50</td><td>+0.148</td><td>5</td></tr>
+        <tr class="hero-row"><td>Random forest</td><td>Precision@500</td><td>+0.106</td><td>5</td></tr>
+        <tr><td>Random forest</td><td>AUC</td><td>+0.006</td><td>3</td></tr>
+        <tr><td>Logistic regression</td><td>Precision@50</td><td>+0.052</td><td>3</td></tr>
+        <tr><td>Logistic regression</td><td>Precision@500</td><td>+0.040</td><td>4</td></tr>
+        <tr><td>Logistic regression</td><td>AUC</td><td>&minus;0.002</td><td>3</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>The reading is narrow. <strong>Overall discrimination is weak for all three methods</strong>: AUC is about 0.60 for each, and the per-fold AUC differences against the baseline are close to zero. The random forest's advantage is confined to the <strong>top of the ranking</strong>, where it scored higher than the baseline in all five folds on both Precision@50 and Precision@500. That is the part of the ranking a limited review queue actually uses, but with only five folds and standard deviations near 0.10 on Precision@50, it is directional evidence rather than a significance test. Logistic regression is not clearly better than the baseline.</p>
+
+    <h3>Single client-holdout split (directional only)</h3>
+    <div class="table-scroll">
     <table>
       <thead>
         <tr><th>Method</th><th>Precision@20</th><th>Precision@50</th></tr>
       </thead>
       <tbody>
-        <tr><td>Baseline rule</td><td>0.60</td><td>0.66</td></tr>
-        <tr class="hero-row"><td>Logistic regression</td><td>0.85</td><td>0.88</td></tr>
-        <tr><td>Random forest</td><td>0.85</td><td>0.78</td></tr>
+        <tr><td>Baseline rule</td><td>0.65</td><td>0.58</td></tr>
+        <tr><td>Logistic regression</td><td>0.85</td><td>0.80</td></tr>
+        <tr><td>Random forest</td><td>0.80</td><td>0.72</td></tr>
       </tbody>
     </table>
-    <figure>
-      <svg viewBox="0 0 720 350" role="img" aria-label="Grouped bar chart of Precision at 20 and Precision at 50 for the baseline rule, logistic regression and random forest, with a dashed line at about 0.66 marking chance level" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)" font-family="Inter, sans-serif">
-<rect x="60" y="14" width="12" height="12" fill="#8fb0a7"/><text x="78" y="24" font-size="12.5" fill="#4a4d47">Precision@20</text>
-<rect x="170" y="14" width="12" height="12" fill="#3a5a52"/><text x="188" y="24" font-size="12.5" fill="#4a4d47">Precision@50</text>
-<line x1="290" y1="20" x2="318" y2="20" stroke="#8a5a2b" stroke-width="1.5" stroke-dasharray="6 4"/><text x="326" y="24" font-size="12.5" fill="#8a5a2b">0.66 = share of all pages that declined (chance level)</text>
-<line x1="60" y1="290.0" x2="700" y2="290.0" stroke="#dedad0" stroke-width="1"/>
-<text x="52" y="294.0" font-size="11.5" fill="#4a4d47" text-anchor="end">0.00</text>
-<line x1="60" y1="230.0" x2="700" y2="230.0" stroke="#dedad0" stroke-width="1"/>
-<text x="52" y="234.0" font-size="11.5" fill="#4a4d47" text-anchor="end">0.25</text>
-<line x1="60" y1="170.0" x2="700" y2="170.0" stroke="#dedad0" stroke-width="1"/>
-<text x="52" y="174.0" font-size="11.5" fill="#4a4d47" text-anchor="end">0.50</text>
-<line x1="60" y1="110.0" x2="700" y2="110.0" stroke="#dedad0" stroke-width="1"/>
-<text x="52" y="114.0" font-size="11.5" fill="#4a4d47" text-anchor="end">0.75</text>
-<line x1="60" y1="50.0" x2="700" y2="50.0" stroke="#dedad0" stroke-width="1"/>
-<text x="52" y="54.0" font-size="11.5" fill="#4a4d47" text-anchor="end">1.00</text>
-<rect x="106.7" y="146.0" width="56" height="144.0" fill="#8fb0a7"/>
-<text x="134.7" y="166.0" font-size="13.5" font-weight="600" fill="#1c1e1b" text-anchor="middle">0.60</text>
-<rect x="170.7" y="131.6" width="56" height="158.4" fill="#3a5a52"/>
-<text x="198.7" y="151.6" font-size="13.5" font-weight="600" fill="#ffffff" text-anchor="middle">0.66</text>
-<text x="166.7" y="312" font-size="13" fill="#1c1e1b" text-anchor="middle">Baseline rule</text>
-<rect x="320.0" y="86.0" width="56" height="204.0" fill="#8fb0a7"/>
-<text x="348.0" y="106.0" font-size="13.5" font-weight="600" fill="#1c1e1b" text-anchor="middle">0.85</text>
-<rect x="384.0" y="78.8" width="56" height="211.2" fill="#3a5a52"/>
-<text x="412.0" y="98.8" font-size="13.5" font-weight="600" fill="#ffffff" text-anchor="middle">0.88</text>
-<text x="380.0" y="312" font-size="13" fill="#1c1e1b" text-anchor="middle">Logistic regression</text>
-<rect x="533.3" y="86.0" width="56" height="204.0" fill="#8fb0a7"/>
-<text x="561.3" y="106.0" font-size="13.5" font-weight="600" fill="#1c1e1b" text-anchor="middle">0.85</text>
-<rect x="597.3" y="102.8" width="56" height="187.2" fill="#3a5a52"/>
-<text x="625.3" y="122.8" font-size="13.5" font-weight="600" fill="#ffffff" text-anchor="middle">0.78</text>
-<text x="593.3" y="312" font-size="13" fill="#1c1e1b" text-anchor="middle">Random forest</text>
-<line x1="60" y1="131.6" x2="700" y2="131.6" stroke="#8a5a2b" stroke-width="1.5" stroke-dasharray="6 4"/>
-</svg>
-      <figcaption>Figure 1. Precision@20 and Precision@50 by method, on the same client-grouped held-out split. The dashed line marks the share of all pages that declined, which is what a random ranking would score.</figcaption>
-    </figure>
-    <p>For context, about 66% of pages in the full working dataset declined from March to April, so a random ranking would be expected to score roughly 0.66 on Precision@K. The baseline rule's Precision@50 of 0.66 is therefore close to chance, while the trained models scored higher in this run. Because Precision@50 is computed over only 50 pages, differences of a few hundredths between methods fall within ordinary sampling variation, and the difference between the two trained models should not be read as meaningful. The supported reading is directional: the trained models scored higher than the baseline here. It is not evidence that the gap holds at every queue depth, in every month, or for every client segment.</p>
-    <div class="callout">
-      <p><strong>On reproducibility:</strong> when the underlying notebook was rerun, the exact precision values changed from run to run (Precision@50 for the same models ranged from roughly 0.66 to 0.88 across reruns). Adding a fixed row ordering to the query did not remove the variation, and the cause was not fully isolated. The table above comes from one run, with its input data saved locally at the time. That saved file is a data file and is deliberately kept out of the public repository, so a reader rerunning the notebook should expect values that differ somewhat from those shown. The direction of the findings was consistent across the runs observed: the trained models scored above the baseline, and an ungrouped split scored far above a grouped one.</p>
+    </div>
+    <p class="note">Share of declining pages in this particular test split: 0.544 (0.638 averaged over folds). The ordering of the two trained models here is the reverse of the cross-validation result, which shows how much a single split depends on which clients land in the test set.</p>
+
+    <div class="callout callout-good">
+      <p><strong>On reproducibility:</strong> an earlier version of this analysis produced precision values that changed between reruns. Logistic regression was failing to converge on unscaled features. After standardizing the features and raising the iteration limit, the model converges in 12 iterations (limit 2,000) and the warning disappeared. Because the old setup was not re-run for comparison, unscaled features are the most likely cause rather than a confirmed one. With the data frozen to a fixed file, seeds fixed, and ties broken deterministically, two full reruns produced the same data hash and identical cross-validation, leakage, and queue tables. The frozen input file is kept out of the public repository, so a reader must rebuild it from the Hugging Face release and may see small differences if the upstream data changes.</p>
     </div>
   </section>
 
   <section id="limitations">
     <h2>Limitations</h2>
     <ul class="limits">
-      <li><strong>Observational, not causal.</strong> This work shows association between observable signals and future decline. It does not show that refreshing a flagged page causes recovery &mdash; that would require a controlled experiment.</li>
-      <li><strong>Single month pair.</strong> The model is trained on one March&rarr;April transition. Performance on other months, or through a strong seasonal shift, is untested.</li>
-      <li><strong>43 clients.</strong> Validation was not performed on client types or industries outside this training population.</li>
-      <li><strong>Thin-traffic risk.</strong> Some flagged pages carry as few as 100&ndash;200 monthly impressions; model confidence is weaker there, and these cases are flagged separately for reviewer caution.</li>
-      <li><strong>Metric variability.</strong> Exact precision values changed across reruns and the cause was not isolated. The figures reported here are from a single run, so small differences between methods should not be over-interpreted.</li>
+      <li><strong>Observational, not causal.</strong> This work shows association between March signals and a later decline, not that refreshing a flagged page causes recovery &mdash; that would require a controlled experiment.</li>
+      <li><strong>Single month pair.</strong> Trained and evaluated on one March&rarr;April transition. Other months and strong seasonal shifts are untested.</li>
+      <li><strong>43 clients.</strong> The model has not been validated on client types outside this population. Pages from one client are correlated, so uncertainty on queue-level figures is wider than a simple sample-size margin suggests.</li>
+      <li><strong>Weak overall discrimination.</strong> AUC is about 0.60 for the baseline, logistic regression, and random forest alike. The random forest's advantage is confined to the top of the ranking and rests on five folds.</li>
+      <li><strong>Small-sample metrics.</strong> Precision@50 is computed over very few pages, with fold-to-fold standard deviations up to about 0.13. The single split depends on which clients land in the test set, so cross-validation is the primary result and the queue comparison is illustrative.</li>
+      <li><strong>Release-time metadata.</strong> <code>days_since_last_update</code> and <code>is_stale</code> were removed because the update date reflects the July 2026 release. <code>word_count</code> is also a release-time snapshot that could not be checked against March; it is kept but may carry information from after the decision point.</li>
+      <li><strong>Survivorship in the label.</strong> Pages with no GSC data in April are dropped by the join, so the label only covers pages observed in both months. Pages that disappeared entirely are not counted as declines, and the number dropped was not measured here.</li>
+      <li><strong>Tier averages use all pages.</strong> <code>tier_avg_ctr</code> is computed over the full dataset, including held-out clients. With four tier values over about 100,000 pages the effect is likely small, but it was not tested.</li>
+      <li><strong>Leakage explanation not tested.</strong> The random-versus-grouped gap shrank after removing <code>days_since_last_update</code>, which is consistent with that feature acting as a client-specific signal, but this was not tested directly.</li>
+      <li><strong>Reason codes are rule-based.</strong> They are assigned by a simple CTR and position rule on top of the model ranking, not learned by the model.</li>
     </ul>
     <p>All claims in this paper use observed, measured, directional, or decision-support language. Nothing here claims to reverse-engineer a Google ranking factor, nor to prove that any specific action causes a specific outcome.</p>
   </section>
 
   <section id="recommendations">
     <h2>Ranked Recommendations</h2>
-    <p>The validated random forest model scores each held-out page; each score is paired with a reason code and a concrete next action, so a reviewer always knows <em>why</em> a page was flagged.</p>
+    <p>The review queue holds the top 5% of held-out pages by random-forest probability: 825 of 16,509 pages, sized to a limited weekly review capacity. Each queued page carries a reason code and a next action, so a reviewer knows why it was flagged.</p>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Group (single split)</th><th>Pages</th><th>Decline rate</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>All held-out pages</td><td>16,509</td><td>0.544</td></tr>
+        <tr><td>Baseline rule, top 825</td><td>825</td><td>0.541</td></tr>
+        <tr class="hero-row"><td>Random forest queue, top 825</td><td>825</td><td>0.681</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>In this split the queue's decline rate is about 14 points above the overall rate, while the baseline's top pages declined at the overall rate. This is directional: the split holds few clients and pages within a client are correlated.</p>
     <figure>
-      <svg viewBox="0 0 720 200" role="img" aria-label="Horizontal bar chart of flagged pages by reason code" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)" font-family="Inter, sans-serif">
-<text x="200" y="52" font-size="13" fill="#1c1e1b" text-anchor="end">high_risk_underperformer</text>
-<rect x="212" y="30" width="414.4" height="32" fill="#3a5a52"/>
-<text x="634.4" y="52" font-size="13" font-weight="600" fill="#1c1e1b">4,604</text>
-<text x="200" y="104" font-size="13" fill="#1c1e1b" text-anchor="end">visible_ctr_gap</text>
-<rect x="212" y="82" width="320.7" height="32" fill="#3a5a52"/>
-<text x="540.7" y="104" font-size="13" font-weight="600" fill="#1c1e1b">3,563</text>
-<text x="200" y="156" font-size="13" fill="#1c1e1b" text-anchor="end">low_confidence</text>
-<rect x="212" y="134" width="215.3" height="32" fill="#3a5a52"/>
-<text x="435.3" y="156" font-size="13" font-weight="600" fill="#1c1e1b">2,392</text>
+      <svg viewBox="0 0 720 150" role="img" aria-label="Horizontal bar chart of queued pages by reason code" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)" font-family="Inter, sans-serif">
+<text x="200" y="52" font-size="13" fill="#1c1e1b" text-anchor="end">visible_ctr_gap</text>
+<rect x="212" y="30" width="414" height="32" fill="#3a5a52"/>
+<text x="634" y="52" font-size="13" font-weight="600" fill="#1c1e1b">454</text>
+<text x="200" y="104" font-size="13" fill="#1c1e1b" text-anchor="end">model_flagged_other</text>
+<rect x="212" y="82" width="338.3" height="32" fill="#3a5a52"/>
+<text x="558.3" y="104" font-size="13" font-weight="600" fill="#1c1e1b">371</text>
 </svg>
-      <figcaption>Figure 2. Distribution of the 10,559 flagged pages across the three reason codes.</figcaption>
+      <figcaption>Figure 2. The 825 queued pages by reason code.</figcaption>
     </figure>
     <div class="reason-grid">
       <div class="reason-card">
-        <div class="code">high_risk_underperformer</div>
-        <div class="desc"><b>Action: review_for_refresh.</b> Model probability &ge; 0.65. The strongest signal in the queue &mdash; work this tier first.</div>
-      </div>
-      <div class="reason-card">
         <div class="code">visible_ctr_gap</div>
-        <div class="desc"><b>Action: review_metadata.</b> A large click-through gap at a decent search position. Route to a title/snippet review rather than a full content rewrite.</div>
+        <div class="desc"><b>Action: review_metadata.</b> 454 pages, 72.5% declined in this split. Click-through rate is below the position-tier average at a position of 20 or better. Route to a title/snippet review before a full content rewrite.</div>
       </div>
       <div class="reason-card">
-        <div class="code">low_confidence</div>
-        <div class="desc"><b>Action: monitor_only.</b> Borderline model probability. Lowest cost-benefit ratio per review &mdash; batch-monitor rather than review individually.</div>
+        <div class="code">model_flagged_other</div>
+        <div class="desc"><b>Action: review_for_refresh.</b> 371 pages, 62.8% declined. Flagged by the model without a visible CTR gap. Check first whether the page's traffic has a known explanation such as seasonality or a migration.</div>
       </div>
     </div>
+    <p>The reason code comes from a simple rule applied on top of the model's ranking, not from the model itself. Both groups declined at a higher rate than the overall 54%, but the difference between them rests on a single split and should not be over-read.</p>
     <h3>Human review is required before acting</h3>
     <p>Before acting on any recommendation, a reviewer should confirm the page is still live and business-relevant, check whether the flagged issue still holds on the live page, and rule out an explanation the model cannot see &mdash; a seasonal campaign ending, a sibling page absorbing demand, or a site migration.</p>
     <div class="callout">
-      <p><strong>What should never be automated:</strong> auto-publishing content changes from the model's score alone; auto-deleting or de-indexing low-confidence pages; treating the model's probability as a guaranteed forecast; or applying this queue to clients outside its training population without re-validation.</p>
+      <p><strong>What should never be automated:</strong> auto-publishing content changes from the model's score alone; auto-deleting or de-indexing pages; treating the model's probability as a guaranteed forecast; or applying this queue to clients outside its training population without re-validation.</p>
     </div>
     <h3>Monitoring and retrain triggers</h3>
-    <p>The queue should be treated as stale, and the pipeline re-run, if: Precision@50 on a fresh month's held-out data drops meaningfully below this run's baseline; the feature distribution shifts materially from the March training snapshot; a structurally new client segment appears; or more than roughly three months pass since the last retrain.</p>
+    <p>The queue should be treated as stale, and the pipeline re-run, if: the queue's decline rate on a fresh month's held-out data falls toward the overall decline rate; the feature distribution shifts materially from the March training snapshot; a structurally new client segment appears; or more than roughly three months pass since the last retrain.</p>
   </section>
 
   <section id="reproducibility">
     <h2>Reproducibility</h2>
-    <p>Every step in this paper &mdash; from the initial research question through the final ranked queue &mdash; is available as executed, committed notebooks in the accompanying public repository (<a href="https://github.com/nooragab/flyrank-ml-internship" target="_blank" rel="noopener">github.com/nooragab/flyrank-ml-internship</a>):</p>
+    <p>Every step in this paper is available as committed notebooks in the accompanying public repository (<a href="https://github.com/nooragab/flyrank-ml-internship" target="_blank" rel="noopener">github.com/nooragab/flyrank-ml-internship</a>):</p>
     <ul>
       <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w01_research_question.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w01_research_question.ipynb</code></a> &mdash; lane selection and framing</li>
       <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w02_ml_task_framing.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w02_ml_task_framing.ipynb</code></a> &mdash; task type, target, and success metric</li>
       <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w03_data_contract.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w03_data_contract.ipynb</code></a> &mdash; data contract and warehouse verification queries</li>
-      <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w04_baseline_score.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w04_baseline_score.ipynb</code></a> &mdash; signal checks and the baseline rule</li>
+      <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w04_baseline_score.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w04_baseline_score.ipynb</code></a> &mdash; signal checks and the original baseline rule</li>
       <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w05_model.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w05_model.ipynb</code></a> &mdash; model training and baseline comparison</li>
-      <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w06_validation_audit.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w06_validation_audit.ipynb</code></a> &mdash; the grouped-vs-ungrouped leakage demonstration</li>
-      <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w07_action_playbook.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w07_action_playbook.ipynb</code></a> &mdash; the reason-coded action queue</li>
+      <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w06_validation_audit.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w06_validation_audit.ipynb</code></a> &mdash; the first grouped-vs-ungrouped leakage demonstration</li>
+      <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/w07_action_playbook.ipynb" target="_blank" rel="noopener"><code>work/notebooks/w07_action_playbook.ipynb</code></a> &mdash; the first version of the reason-coded action queue</li>
       <li><a href="https://github.com/nooragab/flyrank-ml-internship/blob/main/work/notebooks/capstone.ipynb" target="_blank" rel="noopener"><code>work/notebooks/capstone.ipynb</code></a> &mdash; this paper's source notebook</li>
     </ul>
-    <p>The figures in this paper are taken from the executed outputs of the notebooks above, in particular the capstone notebook.</p>
+    <p>The earlier notebooks (w04 to w07) were run before the release-time features were removed and the label and queue were redefined, so their numbers and the tiering in w07 are superseded. All figures in this paper come from the executed capstone notebook, including the cross-validation, leakage-demo, and queue outputs and <code>capstone_metrics.json</code>.</p>
   </section>
 
 </main>
