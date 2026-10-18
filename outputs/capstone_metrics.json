@@ -1,0 +1,13 @@
+{
+  "precision_at_50_baseline": 0.44,
+  "precision_at_50_logreg": 0.86,
+  "precision_at_50_random_forest": 0.76,
+  "precision_at_50_grouped_split": 0.72,
+  "precision_at_50_random_split_leakage_demo": 0.98,
+  "n_clients_total": 43,
+  "flagged_pages_in_queue": 10559,
+  "cv_p50_logreg": 0.804,
+  "cv_p50_random_forest": 0.744,
+  "cv_p50_baseline": 0.668,
+  "cv_auc_logreg": 0.593
+}
