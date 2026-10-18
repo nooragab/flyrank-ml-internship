@@ -1,3 +1,12 @@
+# Search Content Refresh Queue — FlyRank ML Internship Capstone
+
+Capstone for the FlyRank AI Internship (Machine Learning track). It ranks content pages by review priority using pseudonymized search data, comparing a baseline rule against logistic regression and random forest under client-grouped validation.
+
+- Paper: https://nooragab.github.io/flyrank-ml-internship/
+- Notebooks: `work/notebooks/`
+
+*The rest of this README is the original starter template.*
+
 # FlyRank ML Internship — Starter Repo
 
 **Applied Search Intelligence: Google Search Ranking & Discoverability**
